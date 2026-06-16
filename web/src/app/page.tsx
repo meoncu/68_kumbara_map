@@ -79,10 +79,21 @@ export default function Home() {
   const [aramaSonuclari, setAramaSonuclari] = useState<Firma[]>([]);
   const [haritaYuklendi, setHaritaYuklendi] = useState(false);
   const [gorusModu, setGorusModu] = useState<'harita' | 'liste'>('harita');
+  const [firmaEkleModalAcik, setFirmaEkleModalAcik] = useState(false);
+  const [yeniFirmaKonum, setYeniFirmaKonum] = useState<[number, number] | null>(null);
+  const onizlemeMarkerRef = useRef<maplibregl.Marker | null>(null);
 
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  // Modal kapandığında önizleme marker'ını kaldır
+  useEffect(() => {
+    if (!firmaEkleModalAcik && onizlemeMarkerRef.current) {
+      onizlemeMarkerRef.current.remove();
+      onizlemeMarkerRef.current = null;
+    }
+  }, [firmaEkleModalAcik]);
 
   // Arama fonksiyonu
   const handleArama = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -141,6 +152,51 @@ export default function Home() {
       map.current.on('load', () => {
         setHaritaYuklendi(true);
       });
+
+      // Haritaya tıklandığında firma ekleme modalını aç (sadece boş alanlara)
+      map.current.on('click', (e) => {
+        // Eğer bir feature (marker) tıklandıysa işlem yapma
+        const features = map.current?.queryRenderedFeatures(e.point);
+        const isMarkerClicked = features?.some(f => f.layer?.id?.includes('marker'));
+        
+        if (!isMarkerClicked) {
+          const konum: [number, number] = [e.lngLat.lng, e.lngLat.lat];
+          setYeniFirmaKonum(konum);
+          
+          // Önizleme marker'ını göster
+          if (onizlemeMarkerRef.current) {
+            onizlemeMarkerRef.current.remove();
+          }
+          
+          const el = document.createElement('div');
+          el.className = 'onizleme-marker';
+          el.style.width = '40px';
+          el.style.height = '40px';
+          el.style.borderRadius = '50%';
+          el.style.backgroundColor = '#10B981';
+          el.style.border = '4px solid white';
+          el.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)';
+          el.style.cursor = 'pointer';
+          el.innerHTML = '<span style="color:white;font-size:20px;display:flex;align-items:center;justify-content:center;height:100%;">➕</span>';
+          
+          onizlemeMarkerRef.current = new maplibregl.Marker(el)
+            .setLngLat(konum)
+            .addTo(map.current!);
+            
+          el.addEventListener('click', () => {
+            setFirmaEkleModalAcik(true);
+          });
+          
+          setFirmaEkleModalAcik(true);
+        }
+      });
+      
+      // Modal kapandığında önizleme marker'ını kaldır
+      return () => {
+        if (onizlemeMarkerRef.current) {
+          onizlemeMarkerRef.current.remove();
+        }
+      };
 
     } catch (error) {
       console.error('Harita hatası:', error);
@@ -246,6 +302,18 @@ export default function Home() {
         >
           📋 Firma Listesi
         </button>
+        {gorusModu === 'harita' && (
+          <button
+            onClick={() => {
+              // Ankara merkezinden konum al
+              setYeniFirmaKonum([32.8597, 39.9334]);
+              setFirmaEkleModalAcik(true);
+            }}
+            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
+          >
+            ➕ Yeni Firma Ekle
+          </button>
+        )}
         
         {/* Arama kutusu */}
         <div className="flex-1 max-w-md ml-4 relative">
@@ -452,6 +520,234 @@ export default function Home() {
             </div>
           </div>
         )}
+
+        {/* Firma Ekleme Modal */}
+        {firmaEkleModalAcik && yeniFirmaKonum && (
+          <FirmaEkleModal
+            konum={yeniFirmaKonum}
+            kapali={() => setFirmaEkleModalAcik(false)}
+            kaydedildi={() => {
+              setFirmaEkleModalAcik(false);
+              refresh();
+            }}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Firma Ekleme Modal Bileşeni
+function FirmaEkleModal({ 
+  konum, 
+  kapali, 
+  kaydedildi 
+}: { 
+  konum: [number, number], 
+  kapali: () => void, 
+  kaydedildi: () => void 
+}) {
+  const [form, setForm] = useState({
+    ad: '',
+    tur: 'Market',
+    yetkiliAd: '',
+    yetkiliTelefon: '',
+    alternatifTelefon: '',
+    il: 'Ankara',
+    ilce: '',
+    mahalle: '',
+    sokak: '',
+    kapiNo: '',
+    aciklama: '',
+    durum: 'Aktif'
+  });
+
+  const turler = ['Market', 'Kafe', 'Restoran', 'Otel', 'Okul', 'Hastane', 'Avukat', 'Diş Hekimi', 'Giyim', 'Elektronik', 'Diğer'];
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Şimdilik alert gösterelim, gerçek uygulamada Supabase'e kaydedilecek
+    alert(`Firma kaydedildi!\nAd: ${form.ad}\nKonum: ${konum[1].toFixed(4)}, ${konum[0].toFixed(4)}`);
+    kaydedildi();
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-4 border-b flex items-center justify-between">
+          <h2 className="text-xl font-bold">Yeni Firma Ekle</h2>
+          <button 
+            onClick={kapali}
+            className="text-gray-500 hover:text-gray-700 text-2xl"
+          >
+            ✕
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-4 space-y-3">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Firma Adı *</label>
+            <input
+              required
+              type="text"
+              value={form.ad}
+              onChange={(e) => setForm({ ...form, ad: e.target.value })}
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Firma adını girin"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Tür *</label>
+              <select
+                value={form.tur}
+                onChange={(e) => setForm({ ...form, tur: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {turler.map(tur => <option key={tur} value={tur}>{tur}</option>)}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Durum</label>
+              <select
+                value={form.durum}
+                onChange={(e) => setForm({ ...form, durum: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="Aktif">Aktif</option>
+                <option value="Pasif">Pasif</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Yetkili Kişi *</label>
+            <input
+              required
+              type="text"
+              value={form.yetkiliAd}
+              onChange={(e) => setForm({ ...form, yetkiliAd: e.target.value })}
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Yetkili kişinin adı"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Telefon *</label>
+              <input
+                required
+                type="tel"
+                value={form.yetkiliTelefon}
+                onChange={(e) => setForm({ ...form, yetkiliTelefon: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="05xx xxx xx xx"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Alternatif Telefon</label>
+              <input
+                type="tel"
+                value={form.alternatifTelefon}
+                onChange={(e) => setForm({ ...form, alternatifTelefon: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="05xx xxx xx xx"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Konum</label>
+            <div className="px-3 py-2 bg-gray-100 rounded-lg text-sm text-gray-600">
+              Enlem: {konum[1].toFixed(6)}, Boylam: {konum[0].toFixed(6)}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">İl</label>
+              <input
+                type="text"
+                value={form.il}
+                onChange={(e) => setForm({ ...form, il: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">İlçe</label>
+              <input
+                type="text"
+                value={form.ilce}
+                onChange={(e) => setForm({ ...form, ilce: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Örn: Çankaya"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Mahalle</label>
+              <input
+                type="text"
+                value={form.mahalle}
+                onChange={(e) => setForm({ ...form, mahalle: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Sokak</label>
+              <input
+                type="text"
+                value={form.sokak}
+                onChange={(e) => setForm({ ...form, sokak: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Kapı No</label>
+            <input
+              type="text"
+              value={form.kapiNo}
+              onChange={(e) => setForm({ ...form, kapiNo: e.target.value })}
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Açıklama</label>
+            <textarea
+              value={form.aciklama}
+              onChange={(e) => setForm({ ...form, aciklama: e.target.value })}
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              rows={2}
+              placeholder="Ekstra notlar..."
+            />
+          </div>
+
+          <div className="flex gap-2 pt-2">
+            <button
+              type="button"
+              onClick={kapali}
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition"
+            >
+              İptal
+            </button>
+            <button
+              type="submit"
+              className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+            >
+              💾 Kaydet
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
