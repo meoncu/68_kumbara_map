@@ -89,11 +89,32 @@ export default function Home() {
 
   // Modal kapandığında önizleme marker'ını kaldır
   useEffect(() => {
-    if (!firmaEkleModalAcik && onizlemeMarkerRef.current) {
+    if (firmaEkleModalAcik && yeniFirmaKonum && haritaYuklendi && map.current) {
+      // Modal açıldığında ve harita yüklüyse önizleme marker'ını göster
+      const el = document.createElement('div');
+      el.className = 'onizleme-marker';
+      el.style.width = '40px';
+      el.style.height = '40px';
+      el.style.borderRadius = '50%';
+      el.style.backgroundColor = '#10B981';
+      el.style.border = '4px solid white';
+      el.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)';
+      el.style.cursor = 'pointer';
+      el.innerHTML = '<span style="color:white;font-size:20px;display:flex;align-items:center;justify-content:center;height:100%;">📍</span>';
+      
+      if (onizlemeMarkerRef.current) {
+        onizlemeMarkerRef.current.remove();
+      }
+      
+      onizlemeMarkerRef.current = new maplibregl.Marker(el)
+        .setLngLat(yeniFirmaKonum)
+        .addTo(map.current);
+    } else if (!firmaEkleModalAcik && onizlemeMarkerRef.current) {
+      // Modal kapandığında marker'ı kaldır
       onizlemeMarkerRef.current.remove();
       onizlemeMarkerRef.current = null;
     }
-  }, [firmaEkleModalAcik]);
+  }, [firmaEkleModalAcik, yeniFirmaKonum, haritaYuklendi]);
 
   // Arama fonksiyonu
   const handleArama = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -153,7 +174,7 @@ export default function Home() {
         setHaritaYuklendi(true);
       });
 
-      // Haritaya tıklandığında firma ekleme modalını aç (sadece boş alanlara)
+      // Haritaya tıklandığında konumu güncelle (modal açıksa)
       map.current.on('click', (e) => {
         // Eğer bir feature (marker) tıklandıysa işlem yapma
         const features = map.current?.queryRenderedFeatures(e.point);
@@ -161,35 +182,41 @@ export default function Home() {
         
         if (!isMarkerClicked) {
           const konum: [number, number] = [e.lngLat.lng, e.lngLat.lat];
-          setYeniFirmaKonum(konum);
           
-          // Önizleme marker'ını göster
-          if (onizlemeMarkerRef.current) {
-            onizlemeMarkerRef.current.remove();
-          }
-          
-          const el = document.createElement('div');
-          el.className = 'onizleme-marker';
-          el.style.width = '40px';
-          el.style.height = '40px';
-          el.style.borderRadius = '50%';
-          el.style.backgroundColor = '#10B981';
-          el.style.border = '4px solid white';
-          el.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)';
-          el.style.cursor = 'pointer';
-          el.innerHTML = '<span style="color:white;font-size:20px;display:flex;align-items:center;justify-content:center;height:100%;">➕</span>';
-          
-          onizlemeMarkerRef.current = new maplibregl.Marker(el)
-            .setLngLat(konum)
-            .addTo(map.current!);
-            
-          el.addEventListener('click', () => {
+          if (firmaEkleModalAcik) {
+            // Modal açıksa sadece konumu güncelle ve marker'ı göster
+            setYeniFirmaKonum(konum);
+            updateOnizlemeMarker(konum);
+          } else {
+            // Modal kapalıysa modalı aç
+            setYeniFirmaKonum(konum);
+            updateOnizlemeMarker(konum);
             setFirmaEkleModalAcik(true);
-          });
-          
-          setFirmaEkleModalAcik(true);
+          }
         }
       });
+      
+      // Önizleme marker'ını güncelleyen yardımcı fonksiyon
+      const updateOnizlemeMarker = (konum: [number, number]) => {
+        if (onizlemeMarkerRef.current) {
+          onizlemeMarkerRef.current.remove();
+        }
+        
+        const el = document.createElement('div');
+        el.className = 'onizleme-marker';
+        el.style.width = '40px';
+        el.style.height = '40px';
+        el.style.borderRadius = '50%';
+        el.style.backgroundColor = '#10B981';
+        el.style.border = '4px solid white';
+        el.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)';
+        el.style.cursor = 'pointer';
+        el.innerHTML = '<span style="color:white;font-size:20px;display:flex;align-items:center;justify-content:center;height:100%;">📍</span>';
+        
+        onizlemeMarkerRef.current = new maplibregl.Marker(el)
+          .setLngLat(konum)
+          .addTo(map.current!);
+      };
       
       // Modal kapandığında önizleme marker'ını kaldır
       return () => {
@@ -305,7 +332,7 @@ export default function Home() {
         {gorusModu === 'harita' && (
           <button
             onClick={() => {
-              // Ankara merkezinden konum al
+              // Ankara merkezinden başla ama konumu haritadan seçmeye izin ver
               setYeniFirmaKonum([32.8597, 39.9334]);
               setFirmaEkleModalAcik(true);
             }}
@@ -661,8 +688,12 @@ function FirmaEkleModal({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Konum</label>
-            <div className="px-3 py-2 bg-gray-100 rounded-lg text-sm text-gray-600">
-              Enlem: {konum[1].toFixed(6)}, Boylam: {konum[0].toFixed(6)}
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="text-sm text-blue-800 font-medium mb-1">📍 Haritada Tıklayarak Konum Seçin</div>
+              <div className="text-xs text-blue-600 mb-2">Modal açıkken haritada istediğiniz yere tıklayın!</div>
+              <div className="px-3 py-2 bg-white rounded border text-sm text-gray-600">
+                Enlem: {konum[1].toFixed(6)}, Boylam: {konum[0].toFixed(6)}
+              </div>
             </div>
           </div>
 
