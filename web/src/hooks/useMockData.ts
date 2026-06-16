@@ -1,5 +1,11 @@
 'use client';
 
+import type { Database } from '@/types/database';
+
+type Firm = Database['public']['Tables']['firms']['Row'];
+type PiggyBank = Database['public']['Tables']['piggy_banks']['Row'];
+type Team = Database['public']['Tables']['teams']['Row'];
+
 // Ankara'nın gerçek önemli mekanları
 const ANKARA_LOCATIONS = [
   { name: 'Kızılay Meydanı', lat: 39.9334, lng: 32.8597, district: 'Çankaya', neighborhood: 'Kızılay' },
@@ -30,9 +36,9 @@ const FIRM_TYPES = [
 ];
 
 export function useMockData() {
-  const firms = [];
-  const piggyBanks = [];
-  const teams = [];
+  const firms: any[] = [];
+  const piggyBanks: any[] = [];
+  const teams: any[] = [];
 
   // Teams
   teams.push({
