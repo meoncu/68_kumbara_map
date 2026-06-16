@@ -1,0 +1,17 @@
+{
+  "name": "kumbara-takip-sistemi",
+  "version": "1.0.0",
+  "description": "Kumbara Takip ve Saha Operasyon Yönetim Sistemi",
+  "private": true,
+  "scripts": {
+    "dev": "cd web && npm run dev",
+    "dev:web": "cd web && npm run dev",
+    "dev:mobile": "cd mobile && npm start",
+    "install:all": "cd web && npm install && cd ../mobile && npm install",
+    "build:web": "cd web && npm run build",
+    "build:mobile": "cd mobile && npm run build"
+  },
+  "keywords": ["gis", "saas", "nextjs", "react-native", "supabase", "maplibre"],
+  "author": "",
+  "license": "MIT"
+}
