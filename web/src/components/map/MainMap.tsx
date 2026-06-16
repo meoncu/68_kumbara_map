@@ -50,7 +50,6 @@ export function MainMap() {
     mapRef.current = map;
 
     map.addControl(new maplibregl.NavigationControl(), 'top-right');
-    map.addControl(new maplibregl.ScaleControl(), 'bottom-left');
 
     return () => {
       map.remove();
@@ -71,15 +70,15 @@ export function MainMap() {
 
       const firmPiggyBanks = piggyBanks.filter(pb => pb.firm_id === firm.id);
       const hasOverdue = firmPiggyBanks.some(pb => 
-        calculateKumbaraStatus(pb.next_replacement_date) === 'OVERDUE'
+        calculateKumbaraStatus(pb.next_replacement_date) === 'Kırmızı'
       );
       const hasThisWeek = firmPiggyBanks.some(pb => 
-        calculateKumbaraStatus(pb.next_replacement_date) === 'THIS_WEEK'
+        calculateKumbaraStatus(pb.next_replacement_date) === 'Turuncu'
       );
 
-      let color = KUMBARA_STATUS_COLORS.NEW;
-      if (hasOverdue) color = KUMBARA_STATUS_COLORS.OVERDUE;
-      else if (hasThisWeek) color = KUMBARA_STATUS_COLORS.THIS_WEEK;
+      let color: string = KUMBARA_STATUS_COLORS['Yeni'];
+      if (hasOverdue) color = KUMBARA_STATUS_COLORS['Kırmızı'];
+      else if (hasThisWeek) color = KUMBARA_STATUS_COLORS['Turuncu'];
 
       const el = document.createElement('div');
       el.className = 'marker';

@@ -1,6 +1,7 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
+import { X } from 'lucide-react';
 import type { Database } from '@/types/database';
 import { calculateKumbaraStatus, KUMBARA_STATUS_COLORS } from '@/lib/utils';
 
@@ -131,9 +132,4 @@ export function FirmDetailsPanel({ firm, piggyBanks, onClose }: FirmDetailsPanel
       </div>
     </div>
   );
-}
-
-function useState<T>(initial: T): [T, (value: T) => void] {
-  const [state, setState] = React.useState(initial);
-  return [state, setState];
 }

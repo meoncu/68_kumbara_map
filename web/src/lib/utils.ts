@@ -18,11 +18,12 @@ export function epochToDate(epochMs: number | null | undefined): string {
 }
 
 // Kumbara durumunu hesaplayan fonksiyon
-export function calculateKumbaraStatus(sonrakiDegisimTarihi: number | null | undefined): KumbaraStatus {
+export function calculateKumbaraStatus(sonrakiDegisimTarihi: number | string | null | undefined): KumbaraStatus {
   if (!sonrakiDegisimTarihi) return 'Yeni';
   
+  const tarih = typeof sonrakiDegisimTarihi === 'string' ? Date.parse(sonrakiDegisimTarihi) : sonrakiDegisimTarihi;
   const now = Date.now();
-  const diffMs = sonrakiDegisimTarihi - now;
+  const diffMs = tarih - now;
   const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
   
   if (diffDays < 0) return 'Kırmızı';

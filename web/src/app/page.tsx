@@ -47,10 +47,10 @@ const Header = ({ loading, useMock, refresh }: { loading: boolean; useMock: bool
 
 // Basit, hızlı bir harita stili (OpenStreetMap)
 const SIMPLE_STYLE = {
-  version: 8,
+  version: 8 as const,
   sources: {
     'osm-tiles': {
-      type: 'raster',
+      type: 'raster' as const,
       tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
       tileSize: 256,
       attribution: '© OpenStreetMap contributors',
@@ -59,7 +59,7 @@ const SIMPLE_STYLE = {
   layers: [
     {
       id: 'osm-tiles',
-      type: 'raster',
+      type: 'raster' as const,
       source: 'osm-tiles',
       minzoom: 0,
       maxzoom: 19,
@@ -165,7 +165,7 @@ export default function Home() {
       const firmayaAitKumbaralar = getFirmayaAitKumbaralar(firma.id);
       
       // Duruma göre renk belirle - en kötü durumu göster
-      let durumRengi = KUMBARA_STATUS_COLORS['Yeni'];
+      let durumRengi: string = KUMBARA_STATUS_COLORS['Yeni'];
       const durumlar = firmayaAitKumbaralar.map(k => k.durum);
       
       if (durumlar.includes('Kırmızı')) durumRengi = KUMBARA_STATUS_COLORS['Kırmızı'];
