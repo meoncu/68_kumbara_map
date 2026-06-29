@@ -6,12 +6,13 @@ import { getAuth } from 'firebase/auth';
 
 // Firebase yapılandırması - bu değerleri Firebase Console'dan alacaksınız
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || 'demo-api-key',
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || 'demo-project.firebaseapp.com',
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'demo-project',
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || 'demo-project.appspot.com',
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '123456789',
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || '1:123456789:web:abc123'
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyC4EpO56CzYaZum6jw_GKMh-AhG-3tdEgk",
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "kumbara-4adf4.firebaseapp.com",
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "kumbara-4adf4",
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "kumbara-4adf4.firebasestorage.app",
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "164038441686",
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:164038441686:web:98230e8faa32e702686777",
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || "G-263KBGHQ91"
 };
 
 // Firebase'i başlat
