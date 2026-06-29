@@ -22,6 +22,7 @@ export interface Database {
           neighborhood: string;
           street: string | null;
           building_no: string | null;
+          apartment_no: string | null;
           latitude: number | null;
           longitude: number | null;
           location: any | null;
@@ -49,6 +50,7 @@ export interface Database {
           neighborhood: string;
           street?: string | null;
           building_no?: string | null;
+          apartment_no?: string | null;
           latitude?: number | null;
           longitude?: number | null;
           location?: any | null;
@@ -76,6 +78,7 @@ export interface Database {
           neighborhood?: string;
           street?: string | null;
           building_no?: string | null;
+          apartment_no?: string | null;
           latitude?: number | null;
           longitude?: number | null;
           location?: any | null;

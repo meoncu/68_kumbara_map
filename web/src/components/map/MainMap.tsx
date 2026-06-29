@@ -177,7 +177,7 @@ export function MainMap({ firmalar, kumbaralar, locationMode = false, onLocation
       {selectedFirm && (
         <FirmDetailsPanel 
           firm={selectedFirm}
-          piggyBanks={piggyBanks.filter(pb => pb.firm_id === selectedFirm.id)}
+          piggyBanks={kumbaralar.filter((pb) => pb.firm_id === selectedFirm.id)}
           onClose={() => setSelectedFirm(null)}
         />
       )}

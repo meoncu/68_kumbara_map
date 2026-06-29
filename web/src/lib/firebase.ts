@@ -40,6 +40,7 @@ export interface Firma {
   neighborhood: string;
   street?: string | null;
   building_no?: string | null;
+  apartment_no?: string | null;
   latitude?: number | null;
   longitude?: number | null;
   location?: any | null;
@@ -54,11 +55,14 @@ export interface Firma {
   tur?: string;
   yetkiliAd?: string;
   yetkiliTelefon?: string;
+  alternatifTelefon?: string;
   il?: string;
   ilce?: string;
   mahalle?: string;
   sokak?: string;
   kapiNo?: string;
+  daireNo?: string;
+  aciklama?: string;
   durum?: string;
 }
 
@@ -82,6 +86,8 @@ export interface Kumbara {
   notes?: string | null;
   custom_fields?: any | null;
   firm_id?: string | null;
+  assignment_date?: Date | null;
+  archived?: boolean | null;
   
   // Türkçe alias'lar (geriye dönük uyumluluk için)
   kumbaraNo?: string;
@@ -91,8 +97,75 @@ export interface Kumbara {
   sonDegisimTarihi?: string | null;
   sonrakiDegisimTarihi?: string;
   periyotGun?: number;
+  toplamaPeriyodu?: number;
   toplamToplamSayisi?: number;
   toplamBagis?: number;
   sonBagisMiktari?: number | null;
   sonBagisTarihi?: string | null;
+  durum?: string;
+  notlar?: string | null;
+  atanan_ekip_id?: string | null;
+  atananEkipId?: string | null;
+  atanmaTarihi?: Date | null;
+  arsivlendiMi?: boolean | null;
+}
+
+export interface EkipUyesi {
+  id: string;
+  created_at: Date;
+  updated_at: Date;
+  deleted_at?: Date | null;
+  ad: string;
+  soyad: string;
+  telefon: string;
+  email: string;
+  google_id?: string | null;
+}
+
+export interface Ekip {
+  id: string;
+  created_at: Date;
+  updated_at: Date;
+  deleted_at?: Date | null;
+  ad: string;
+  uye_idleri: string[];
+}
+
+export interface IslemGecmisi {
+  id: string;
+  kumbara_id: string;
+  kumbara_no: string;
+  ekip_id: string;
+  ekip_ad: string;
+  firma_id: string;
+  firma_ad: string;
+  tarih: Date;
+  created_at: Date;
+}
+
+export interface GunlukKumbaraKontrol {
+  id: string;
+  kumbara_id: string;
+  kumbara_no: string;
+  ekip_id: string;
+  ekip_ad: string;
+  firma_id: string;
+  firma_ad: string;
+  kontrol_tarihi: Date;
+  durum: 'degistirildi' | 'gerek_yok' | 'ugranmadi';
+  not?: string | null;
+  arsivlendi?: boolean; // whether it's part of a finalized archive
+  arsiv_id?: string; // id of the archive it's part of
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface GunlukArsiv {
+  id: string;
+  ekip_id: string;
+  ekip_ad: string;
+  arsiv_tarihi: Date;
+  gunluk_kontroller: string[]; // array of gunlukKontrol ids
+  eksik_kumbara_sayisi: number;
+  created_at: Date;
 }
